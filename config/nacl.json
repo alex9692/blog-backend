@@ -1,0 +1,37 @@
+[
+	{
+		"group": "admin",
+		"permissions": [
+			{
+				"resource": "*",
+				"methods": "*",
+				"action": "allow"
+			}
+		]
+	},
+	{
+		"group": "user",
+		"permissions": [
+			{
+				"resource": "users/*",
+				"methods": "*",
+				"action": "allow"
+			},
+			{
+				"resource": "articles/*",
+				"methods": "*",
+				"action": "allow"
+			}
+		]
+	},
+	{
+		"group": "guest",
+		"permissions": [
+			{
+				"resource": "articles/*",
+				"methods": ["GET"],
+				"action": "allow"
+			}
+		]
+	}
+]
