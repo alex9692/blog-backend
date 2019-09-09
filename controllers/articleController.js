@@ -3,8 +3,12 @@ const errorHandler = require("../config/errorHandler");
 
 exports.getAllArticles = async (req, res, next) => {
 	try {
-		const articles = await Article.find({});
+		let filter = {};
+		if (req.params.userId) {
+			filter = { user: req.params.userId };
+		}
 
+		const articles = await Article.find(filter);
 		res.status(200).json({
 			status: "success",
 			results: articles.length,

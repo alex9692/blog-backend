@@ -5,9 +5,9 @@ const passport = require("passport");
 
 const passportSetup = require("./config/passport");
 
-const userRoutes = require("./routes/user-routes");
-const articleRoutes = require("./routes/article-routes");
-const adminRoutes = require("./routes/admin-routes");
+const userRouter = require("./routes/user-routes");
+const articleRouter = require("./routes/article-routes");
+const adminRouter = require("./routes/admin-routes");
 
 const errorController = require("./controllers/errorController");
 
@@ -22,9 +22,9 @@ if (process.env.NODE_ENV === "development") {
 
 app.use(passport.initialize());
 
-app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/admin", adminRoutes);
-app.use("/api/v1/articles", articleRoutes);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/articles", articleRouter);
+app.use("/api/v1/admin", adminRouter);
 
 app.all("*", (req, res, next) => {
 	// const err = new AppError(`Can't find ${req.originalUrl} on the server!`, 404);

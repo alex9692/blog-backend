@@ -6,6 +6,9 @@ const acl = require("../config/nacl");
 
 const userController = require("../controllers/userController");
 const authController = require("../controllers/authController");
+const articleRouter = require("./article-routes");
+
+router.use("/:userId/articles", articleRouter);
 
 router.get(
 	"/secret",
