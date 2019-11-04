@@ -21,6 +21,11 @@
 				"resource": "articles/*",
 				"methods": "*",
 				"action": "allow"
+			},
+			{
+				"resource": "reviews/*",
+				"methods": "*",
+				"action": "allow"
 			}
 		]
 	},
@@ -30,6 +35,26 @@
 			{
 				"resource": "articles/*",
 				"methods": ["GET"],
+				"action": "allow"
+			},
+			{
+				"resource": "reviews/*",
+				"methods": ["GET"],
+				"action": "allow"
+			},
+			{
+				"resource": "users/getMe",
+				"methods": ["GET"],
+				"action": "allow"
+			},
+			{
+				"resource": "users/deactivate-me",
+				"methods": ["DELETE"],
+				"action": "allow"
+			},
+			{
+				"resource": "users/reactivate-me/*",
+				"methods": ["POST", "PATCH"],
 				"action": "allow"
 			}
 		]

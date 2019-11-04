@@ -1,13 +1,13 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const http = require("http");
 
 dotenv.config({ path: "./config.env" });
-const app = require("./index");
 
-const dbURI = process.env.DATABASE_URI_LOCAL;
+const dbURILocal = process.env.DATABASE_URI_LOCAL;
 
 mongoose
-	.connect(dbURI, {
+	.connect(dbURILocal, {
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useFindAndModify: false
@@ -16,7 +16,10 @@ mongoose
 		console.log("Database connected successfully");
 	});
 
+const app = require("./index");
+const server = http.createServer(app);
+
 const port = process.env.PORT || 3000;
-const server = app.listen(port, () => {
+server.listen(port, () => {
 	console.log("running in port: " + port);
 });

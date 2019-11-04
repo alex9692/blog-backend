@@ -14,8 +14,8 @@ const articleSchema = new Schema(
 				"The title should be less than or equal to 500 characters long"
 			],
 			minlength: [
-				50,
-				"The title should be more than or equal to 100 characters long"
+				10,
+				"The title should be more than or equal to 10 characters long"
 			]
 		},
 		content: {
@@ -27,8 +27,8 @@ const articleSchema = new Schema(
 				"The content should be less than or equal to 10000 characters long"
 			],
 			minlength: [
-				1000,
-				"The content should be more than or equal to 1000 characters long"
+				100,
+				"The content should be more than or equal to 100 characters long"
 			]
 		},
 		ratingsAverage: {
@@ -57,6 +57,14 @@ articleSchema.index({ slug: 1 });
 
 articleSchema.pre("save", function(next) {
 	this.slug = slugify(this.title, { lower: true });
+	next();
+});
+
+articleSchema.pre(/^find/, function(next) {
+	this.populate({
+		path: "user",
+		select: "name email"
+	});
 	next();
 });
 

@@ -7,8 +7,10 @@ const acl = require("../config/nacl");
 const userController = require("../controllers/userController");
 const authController = require("../controllers/authController");
 const articleRouter = require("./article-routes");
+const reviewRouter = require("./review-routes");
 
 router.use("/:userId/articles", articleRouter);
+router.use("/:userId/reviews", reviewRouter);
 
 router.get(
 	"/secret",
@@ -45,11 +47,12 @@ router.patch("/verify-email/:token", authController.verifyEmailEnd);
 
 // RECOVER FORGOTTEN PASSWORD USING EMAIL
 router.post("/forgot-password", authController.forgotPassword);
+router.get('/getUserName/:token', authController.getResetUserName)
 router.patch("/reset-password/:token", authController.resetPassword);
 
 // GET LOGGED-IN USER DETAILS
 router.get(
-	"/get-me",
+	"/getMe",
 	passport.authenticate("jwt", { session: false }),
 	acl.authorize,
 	userController.setMe,

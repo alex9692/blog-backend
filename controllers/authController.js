@@ -1,9 +1,23 @@
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/userModel");
-
 const sendMail = require("../config/sendEmail");
 const errorHandler = require("../config/errorHandler");
+
+const server = require("http").createServer(require("express")());
+const io = require("socket.io")(server);
+
+server.listen(5001, () => {
+	console.log("socket.io running in PORT: 5001");
+});
+
+io.on("connection", function(socket) {
+	console.log("connected");
+	socket.on("startVerification", async id => {
+		const user = await User.findById(id);
+		socket.emit("sendUpdatedUser", user);
+	});
+});
 
 exports.signUp = async (req, res, next) => {
 	try {
@@ -52,7 +66,7 @@ exports.signIn = async (req, res, next) => {
 		}
 
 		if (!user || !(await user.checkPassword(password, user.password))) {
-			return next(errorHandler("Incorrect email or password", "fail", 401));
+			return next(errorHandler("Incorrect email or password", "fail", 400));
 		}
 
 		const token = jwt.sign(
@@ -66,12 +80,15 @@ exports.signIn = async (req, res, next) => {
 		);
 
 		user.password = undefined;
+		const tokenExpirationDate =
+			Date.now() + +process.env.JWT_EXPIRES_IN.match(/[0-9]/g).join("") * 1000;
 
 		res.status(200).json({
 			status: "success",
-			token,
 			data: {
-				user
+				userId: user.id,
+				token,
+				tokenExpirationDate
 			}
 		});
 	} catch (error) {
@@ -246,9 +263,7 @@ exports.forgotPassword = async (req, res, next) => {
 		const passwordResetToken = user.createPasswordResetToken();
 		await user.save();
 
-		const url = `${req.protocol}://${req.get(
-			"host"
-		)}/api/v1/users/reset-password/${passwordResetToken}`;
+		const url = `${req.protocol}://localhost:8080/reset-password/${passwordResetToken}`;
 		const message = `Please click this ${url} link to reset your password. \nIgnore this if you dont want to reset your password.`;
 
 		const mailConfig = {
@@ -272,6 +287,37 @@ exports.forgotPassword = async (req, res, next) => {
 				errorHandler("There was an error sending the email. Try again later!")
 			);
 		}
+	} catch (error) {
+		return next(errorHandler(error.message));
+	}
+};
+
+exports.getResetUserName = async (req, res, next) => {
+	try {
+		const { token } = req.params;
+
+		const hashedToken = User.createHashedPasswordResetToken(token);
+
+		const user = await User.findOne({
+			resetPasswordToken: hashedToken,
+			resetPasswordTokenExpiry: { $gt: Date.now() }
+		});
+
+		if (!user) {
+			return next(
+				errorHandler(
+					"The session to reset your password has expired! Please try again",
+					"fail",
+					408
+				)
+			);
+		}
+		res.status(200).json({
+			status: "success",
+			data: {
+				user: user.name
+			}
+		});
 	} catch (error) {
 		return next(errorHandler(error.message));
 	}
@@ -328,7 +374,7 @@ exports.changeMyPassword = async (req, res, next) => {
 		}
 
 		if (!(await user.checkPassword(currentPassword, user.password))) {
-			return next(errorHandler("Incorrect password", "fail", 401));
+			return next(errorHandler("Incorrect password", "fail", 400));
 		}
 
 		if (newPassword !== confirmNewPassword) {

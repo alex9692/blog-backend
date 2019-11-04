@@ -1,5 +1,6 @@
 const User = require("../models/userModel");
 const errorHandler = require("../config/errorHandler");
+const sendMail = require("../config/sendEmail");
 
 exports.getAllUsers = async (req, res, next) => {
 	try {
@@ -21,7 +22,11 @@ exports.getUser = async (req, res, next) => {
 	try {
 		const { id } = req.params;
 
-		const user = await User.findById(id);
+		const user = await User.findById(id)
+			.select("+active")
+			.select("+createdAt")
+			.select("+updatedAt")
+			.select("-__v");
 		if (!user) {
 			return next(errorHandler("User not found", "fail", 404));
 		}
@@ -115,7 +120,11 @@ exports.updateUserData = async (req, res, next) => {
 			id,
 			{ ...filterdObj },
 			{ new: true, runValidators: true }
-		);
+		)
+			.select("+active")
+			.select("+createdAt")
+			.select("+updatedAt")
+			.select("-__v");
 
 		res.status(200).json({
 			status: "success",
@@ -162,9 +171,7 @@ exports.reactivateMeStart = async (req, res, next) => {
 
 		const token = user.generateVerifyEmailToken(user.id);
 
-		const activationUrl = `${req.protocol}://${req.get(
-			"host"
-		)}/api/v1/users/reactivate-me/${token}`;
+		const activationUrl = `${req.protocol}://localhost:8080/reactivate-account/${token}`;
 
 		const message = `To activate your account ,go to ${activationUrl} link. \nIf your account is already activated ignore this mail.`;
 
@@ -173,7 +180,7 @@ exports.reactivateMeStart = async (req, res, next) => {
 			subject: "Account activation",
 			message
 		};
-
+		console.log(user, mailConfig);
 		try {
 			await sendMail(mailConfig);
 
@@ -200,7 +207,18 @@ exports.reactivateMeEnd = async (req, res, next) => {
 		const { token } = req.params;
 		const id = User.decipherVerifyEmailToken(token);
 
-		await User.findByIdAndUpdate(id, { active: true });
+		const user = await User.findById(id).select("+active");
+		if (!user) {
+			return next(errorHandler("User not found", "fail", 404));
+		}
+		if (user.active) {
+			return next(
+				errorHandler("Your account is already activated", "fail", 400)
+			);
+		}
+
+		user.active = true;
+		await user.save();
 
 		res.status(200).json({
 			status: "success",

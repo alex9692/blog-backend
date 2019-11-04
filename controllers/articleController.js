@@ -1,3 +1,4 @@
+const slugify = require("slugify");
 const Article = require("../models/articleModel");
 const errorHandler = require("../config/errorHandler");
 
@@ -9,6 +10,7 @@ exports.getAllArticles = async (req, res, next) => {
 		}
 
 		const articles = await Article.find(filter);
+
 		res.status(200).json({
 			status: "success",
 			results: articles.length,
@@ -60,7 +62,7 @@ exports.getArticle = async (req, res, next) => {
 exports.updateArticle = async (req, res, next) => {
 	try {
 		const { id } = req.params;
-
+		req.body.slug = slugify(req.body.title, { lower: true });
 		const article = await Article.findByIdAndUpdate(id, req.body, {
 			new: true,
 			runValidators: true
@@ -101,8 +103,9 @@ exports.deleteArticle = async (req, res, next) => {
 exports.checkOwnedArticle = async (req, res, next) => {
 	try {
 		const article = await Article.findById(req.params.id);
-		console.log(article.user, req.user.id);
-		if (article.user.toString() === req.user.id) return next();
+		console.log(article.user.id, req.user.id);
+		if (article.user.id.toString() === req.user.id) return next();
+
 		res.status(403).json({
 			status: "fail",
 			message: "You are not allowed to modify others articles"
@@ -110,4 +113,9 @@ exports.checkOwnedArticle = async (req, res, next) => {
 	} catch (error) {
 		return next(errorHandler(error.message));
 	}
+};
+
+exports.setMyId = (req, res, next) => {
+	req.params.userId = req.user.id;
+	next();
 };

@@ -5,6 +5,17 @@ const { passport } = require("../config/passport");
 const acl = require("../config/nacl");
 
 const articleController = require("../controllers/articleController");
+const reviewRouter = require("./review-routes");
+
+router.use("/:articleId/reviews", reviewRouter);
+
+router.get(
+	"/my-articles",
+	passport.authenticate("jwt", { session: false }),
+	acl.authorize,
+	articleController.setMyId,
+	articleController.getAllArticles
+);
 
 router
 	.route("/")
