@@ -1,7 +1,7 @@
 const Review = require("../models/reviewModel");
 const errorHandler = require("../config/errorHandler");
 
-exports.setArticleId = (req, res, next) => {
+exports.setArticleAndUserId = (req, res, next) => {
 	if (!req.body.article) req.body.article = req.params.articleId;
 	if (!req.body.user) req.body.user = req.user.id;
 	next();
@@ -31,7 +31,7 @@ exports.getAllReviews = async (req, res, next) => {
 			filter = { user: req.params.userId };
 		}
 
-		const reviews = await Review.find(filter);
+		const reviews = await Review.find(filter).populate("user article");
 
 		res.status(200).json({
 			status: "success",
@@ -48,11 +48,13 @@ exports.getAllReviews = async (req, res, next) => {
 exports.createReview = async (req, res, next) => {
 	try {
 		const review = await Review.create(req.body);
-
+		const updatedReview = await Review.findById(review.id).populate(
+			"user article"
+		);
 		res.status(201).json({
 			status: "success",
 			data: {
-				review
+				review: updatedReview
 			}
 		});
 	} catch (error) {

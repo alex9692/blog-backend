@@ -12,7 +12,7 @@ router
 	.post(
 		passport.authenticate("jwt", { session: false }),
 		acl.authorize,
-		reviewController.setArticleId,
+		reviewController.setArticleAndUserId,
 		reviewController.createReview
 	);
 

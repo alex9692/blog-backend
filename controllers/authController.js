@@ -190,9 +190,7 @@ exports.verifyEmailStart = async (req, res, next) => {
 
 		const token = user.generateVerifyEmailToken(id);
 
-		const url = `${req.protocol}://${req.get(
-			"host"
-		)}/api/v1/users/verify-email/${token}`;
+		const url = `${req.protocol}://localhost:8080/verify-email/${token}`;
 		const message = `Verify your account by going to this ${url} link.\nIf your email is already verified ignore this mail`;
 
 		const mailConfig = {

@@ -7,7 +7,7 @@ const reviewSchema = new Schema(
 			type: String,
 			required: [true, "A review cannot be empty"]
 		},
-		rating: {
+		ratings: {
 			type: Number,
 			min: 1,
 			max: 5
